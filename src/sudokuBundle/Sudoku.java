@@ -13,6 +13,7 @@ public abstract class Sudoku {
     protected Representation representation;
     protected int dimension;
     protected DisplayType type;
+    protected int puzzleIndex;
 
     protected String filepath;
 
@@ -23,6 +24,7 @@ public abstract class Sudoku {
         this.representation = new Representation(dimension,DisplayType.NUMBERS);
         this.type = DisplayType.NUMBERS;
         this.dimension = dimension;
+        this.puzzleIndex = 1;
     }
 
     /**
@@ -212,4 +214,5 @@ public abstract class Sudoku {
     public DisplayType getType() { return type; }
     public Representation getRepresentation() { return representation; }
     public String getFilepath() { return filepath; }
+    public int getPuzzleIndex() { return puzzleIndex; }
 }

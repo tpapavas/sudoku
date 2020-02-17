@@ -28,8 +28,8 @@ public class KillerSudoku extends Sudoku {
     }
 
     private void readFromFile() {
-        int index = findPuzzle();
-        filepath += index + ".txt";
+        puzzleIndex = findPuzzle();
+        filepath += puzzleIndex + ".txt";
         BufferedReader reader = null;
 
         try {

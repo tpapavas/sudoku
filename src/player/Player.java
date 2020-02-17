@@ -43,6 +43,7 @@ public class Player implements Serializable {
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
+            //e.printStackTrace();
             System.out.println("Error within player's readFromFile()");
         }
     }

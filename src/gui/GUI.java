@@ -75,6 +75,7 @@ public class GUI {
 
         panelGameContainer = new JPanel(new GridLayout(1,1));
         panelGameContainer.setBorder(new EmptyBorder(10,10,10,10));
+        panelGameContainer.setBackground(COLOR_MEDIUM_GREY);
 
         labelInstructions = new JLabel(messages.getString("welcome"));
         labelInstructions.setBorder(new EmptyBorder(5,5,5,5));
@@ -82,7 +83,6 @@ public class GUI {
         panelMain.add(labelInstructions,BorderLayout.PAGE_START);
         panelMain.add(panelButtons,BorderLayout.LINE_START);
         panelMain.add(panelGameContainer,BorderLayout.CENTER);
-
 
         buttonHelp = new JButton(messages.getString("help"));
         buttonWordoku = new JButton(messages.getString("wordoku"));
@@ -159,10 +159,129 @@ public class GUI {
 
         private Color defaultColor;
 
-        public cellButton() {}
+        public cellButton() {
+            button = new JButton();
+            isClicked = false;
+            enteredIllegalNumber = true;
+            coordI = -1;
+            coordJ = -1;
+            coordLinear = -1;
+            defaultColor = COLOR_DEFAULT;
 
-        private void release() {}
-        private void select() {}
+            button.addActionListener((ActionEvent e) -> {
+                if(isClicked && aButtonIsCurrentlyActive)
+                    release();
+                else if(currentGame.getPuzzle().getState()[coordI][coordJ] == State.NEGATED || aButtonIsCurrentlyActive) {
+                }
+                else if(!isClicked)
+                    select();
+            });
+
+            button.addKeyListener(new KeyListener() {
+                @Override public void keyTyped(KeyEvent e) {}
+                @Override public void keyReleased(KeyEvent e) {}
+
+                @Override
+                public void keyPressed(KeyEvent keyEvent) {
+                    int inputUpperLimit, inputLowerLimit;
+                    if(currentGame.getType() == DisplayType.NUMBERS) {
+                        inputUpperLimit = currentGame instanceof Duidoku ? KeyEvent.VK_4 : KeyEvent.VK_9;
+                        inputLowerLimit = KeyEvent.VK_1;
+                    } else {
+                        inputUpperLimit = currentGame instanceof Duidoku ? KeyEvent.VK_D : KeyEvent.VK_I;
+                        inputLowerLimit = KeyEvent.VK_A;
+                    }
+
+                    int offset = currentGame.getType() == DisplayType.NUMBERS ? 0 : 16;
+                    int keyCode = keyEvent.getKeyCode();
+
+                    if(isClicked) {
+                        if(keyCode == KeyEvent.VK_ENTER)
+                            release();
+
+                        if(keyCode >= inputLowerLimit && keyCode <= inputUpperLimit) {
+                            int displayValue = keyCode - 48 - offset;
+
+                            if(!currentGame.isLegalMove(displayValue,coordI,coordJ)) {
+                                labelInstructions.setText(messages.getString("illegal"));
+                                enteredIllegalNumber = true;
+
+                                //timer to change to warning bg cell colour
+                                Timer timer = new Timer(100, new ActionListener() {
+                                    @Override
+                                    public void actionPerformed(ActionEvent actionEvent) {
+                                        button.setBackground(COLOR_WRONG);
+                                    }
+                                });
+                                timer.setRepeats(false);
+                                timer.start();
+
+                                currentGame.getPuzzle().setValue(0,coordI,coordJ);
+                            } else {
+                                currentGame.doMove(displayValue,coordI,coordJ);
+                                labelInstructions.setText(messages.getString("label"));
+                                enteredIllegalNumber = false;
+                                button.setBackground(COLOR_HIGHLIGHTED);
+                                lastMoveLinear = coordLinear;
+                            }
+
+                            button.setText(String.valueOf(currentGame.getRepresentation().getFormat()[displayValue]));
+                        }
+                    }
+                }
+            });
+
+            if(currentGame instanceof KillerSudoku) {
+                button.addMouseMotionListener(new MouseMotionListener() {
+                    @Override public void mouseDragged(MouseEvent e) {}
+
+                    @Override
+                    public void mouseMoved(MouseEvent e) {
+                        if(!aButtonIsCurrentlyActive)
+                            if(!displayHints)
+                                labelInstructions.setText(messages.getString("regionSum") + ((KillerSudoku) currentGame).getRegionSum(coordI,coordJ));
+                    }
+                });
+            }
+        }
+
+        private void release() {
+            if(enteredIllegalNumber)
+                button.setText(" ");
+            else {
+                if(currentGame.getPuzzle().isFull()) {
+                    labelInstructions.setText(messages.getString("congrats"));
+                    updateStats(true);
+                }
+                if(currentGame instanceof Duidoku) {
+                    if (((Duidoku) currentGame).pcMove()) {
+                        if (currentGame.getPuzzle().isFull()) {
+                            labelInstructions.setText(messages.getString("lose"));
+                            updateStats(false);
+                        }
+                        refreshTable();
+                    }
+                }
+            }
+
+            isClicked = false;
+            aButtonIsCurrentlyActive = false;
+            button.setBackground(defaultColor);
+            currentSelection = -1;
+
+            if(displayHints) {
+                displayHints = false;
+                labelInstructions.setText(messages.getString("label"));
+                labelInstructions.setForeground(Color.black);
+            }
+        }
+
+        private void select() {
+            currentSelection = coordLinear;
+            aButtonIsCurrentlyActive = true;
+            isClicked = true;
+            button.setBackground(COLOR_HIGHLIGHTED);
+        }
 
         //getters
         private JButton getButton() { return button; }
@@ -178,26 +297,32 @@ public class GUI {
     }
 
     private void setupActionListeners() {
-        ActionListener gameListener = (ActionEvent e) -> {
-            if(aGameIsCurrentlyActive)
-                try {
-                    if (currentGame instanceof ClassicSudoku)
-                        setupClassicSudoku();
-                    if (currentGame instanceof KillerSudoku)
-                        setupKillerSudoku();
-                    else
-                        setupDuidoku();
-                } catch (Exception ex) {
-                    System.out.println("Error in actionListener.");
-                }
-        };
-
         //---BUTTON SUDOKU
-        buttonSudoku.addActionListener(gameListener);
+        buttonSudoku.addActionListener((ActionEvent e) -> {
+            if(!aGameIsCurrentlyActive) {
+                setupClassicSudoku();
+                labelInstructions.setText("label");
+                aGameIsCurrentlyActive = true;
+            }
+        });
+
         //---BUTTON KILLER SUDOKU
-        buttonKillerSudoku.addActionListener(gameListener);
+        buttonKillerSudoku.addActionListener((ActionEvent e) -> {
+            if(!aGameIsCurrentlyActive) {
+                setupKillerSudoku();
+                labelInstructions.setText("label");
+                aGameIsCurrentlyActive = true;
+            }
+        });
+
         //---BUTTON DUIDOKU
-        buttonDuidoku.addActionListener(gameListener);
+        buttonDuidoku.addActionListener((ActionEvent e) -> {
+            if(!aGameIsCurrentlyActive) {
+                setupDuidoku();
+                labelInstructions.setText("label");
+                aGameIsCurrentlyActive = true;
+            }
+        });
 
         //---BUTTON UNDO
         buttonUndo.addActionListener((ActionEvent e) -> {
@@ -238,8 +363,11 @@ public class GUI {
                         panelGameContainer.remove(0);
 
                         //write to players file
-                        if (currentGame.getPuzzle().isFull())
+                        if (currentGame.getPuzzle().isFull()) {
                             currentGame.updatePlayersFile();
+                            System.out.println("Loses: " + player.getDuidokuLoses());
+                            System.out.println("Wins: " + player.getDuidokuWins());
+                        }
 
                         //free memory
                         currentGame = null;
@@ -318,7 +446,7 @@ public class GUI {
      * puzzle array and performs the game logic.
      * It creates a panel that contains all the cells. At the same time it assigns the cartesian coordinates to each cell button.
      */
-    private void setupClassicSudoku() throws Exception {
+    private void setupClassicSudoku() {
         panelGameClassic = new JPanel(new GridLayout(3,3,3,3));
         panelGameClassic.setBackground(COLOR_MEDIUM_GREY);
         panelGameContainer.add(panelGameClassic);
@@ -390,7 +518,7 @@ public class GUI {
      * It creates a panel that contains all the cells. At the same time it assigns the cartesian coordinates to each cell button.
      * It also paints the cells randomly a different color.
      */
-    private void setupKillerSudoku() throws Exception {
+    private void setupKillerSudoku() {
         panelGameKiller = new JPanel(new GridLayout(3,3,3,3));
         panelGameKiller.setBackground(COLOR_MEDIUM_GREY);
         panelGameContainer.add(panelGameKiller);
@@ -439,7 +567,7 @@ public class GUI {
                 //set square appearence and add to game container (JPanel)
                 currentSquare.setLayout(new GridLayout(3,3,0,0));
                 currentSquare.setBorder(BorderFactory.createEmptyBorder());
-                panelGameClassic.add(currentSquare);
+                panelGameKiller.add(currentSquare);
             }
 
             //calculate square-level coordinates and use them to offset the table-level coordinates (current origins)
@@ -457,7 +585,7 @@ public class GUI {
         panelGameKiller.setVisible(true);
     }
 
-    private void setupDuidoku() throws Exception {
+    private void setupDuidoku() {
         panelGameDuidoku = new JPanel(new GridLayout(2,2,1,1));
         panelGameDuidoku.setBackground(COLOR_MEDIUM_GREY);
         panelGameContainer.add(panelGameDuidoku);
@@ -499,7 +627,7 @@ public class GUI {
                 //set square appearence and add to game container (JPanel)
                 currentSquare.setLayout(new GridLayout(2,2,0,0));
                 currentSquare.setBorder(BorderFactory.createEmptyBorder());
-                panelGameClassic.add(currentSquare);
+                panelGameDuidoku.add(currentSquare);
             }
 
             //calculate square-level coordinates and use them to offset the table-level coordinates (current origins)
@@ -528,11 +656,11 @@ public class GUI {
      */
     private void getCoordinates(int pos, int dimension, int level, int[] coords){
         coords[0] = (pos/dimension)*(int)Math.pow(dimension,level);
-        coords[1] = (int) (pos%dimension)*(int)Math.pow(dimension,level);
+        coords[1] = (pos%dimension)*(int)Math.pow(dimension,level);
     }
 
     /**
-     * This method receives a Jcomponent and either disables or enaables its children that are JButtons
+     * This method receives a JComponent and either disables or enaables its children that are JButtons
      *
      * @param c The panrent component
      * @param b The boolean value. On or off.
@@ -564,5 +692,30 @@ public class GUI {
         buttonExitGame.setText(messages.getString("exit"));
     }
 
-    private void updateCellsRepresentation() {}
+    /**
+     * Updates the display type. Letters or words
+     */
+    private void updateCellsRepresentation() {
+        int numOfCells = (int) Math.pow(currentGame.getPuzzle().getDimention(),2);
+        for(int k = 0; k < numOfCells; k++)
+            cells[k].getButton().setText(Character.toString(currentGame.getRepresentation().getFormat()[currentGame.getPuzzle().getTable()[cells[k].getCoordI()][cells[k].getCoordJ()]]));
+    }
+
+    private void updateStats(boolean isWin) {
+        if (currentGame instanceof Duidoku)
+            if (isWin)
+                player.increaseDuidokuWins();
+            else
+                player.increaseDuidokuLoses();
+        else if(currentGame instanceof ClassicSudoku)
+            player.getHasPlayedSudoku()[currentGame.getPuzzleIndex() - 1] = true;
+        else
+            player.getHasPlayedKillerSudoku()[currentGame.getPuzzleIndex()-1] = true;
+    }
+
+    private void refreshTable() {
+        int numOfCells = (int) Math.pow(currentGame.getPuzzle().getDimention(),2);
+        for(int k = 0; k < numOfCells; k++)
+            cells[k].getButton().setText(String.valueOf(currentGame.getRepresentation().getFormat()[currentGame.getPuzzle().getTable()[cells[k].getCoordI()][cells[k].getCoordJ()]]));
+    }
 }

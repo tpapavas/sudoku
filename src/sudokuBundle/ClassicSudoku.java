@@ -27,8 +27,8 @@ public class ClassicSudoku extends Sudoku {
      * It creates a sudoku table that's ready to be solved.
      */
     private void readFromFile() {
-        int index = findPuzzle();
-        filepath += index + ".txt";
+        puzzleIndex = findPuzzle();
+        filepath += puzzleIndex + ".txt";
         System.out.println(filepath);
         BufferedReader reader = null;
 

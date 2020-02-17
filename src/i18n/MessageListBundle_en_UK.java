@@ -26,6 +26,9 @@ public class MessageListBundle_en_UK extends ListResourceBundle {
             {"exitProgramm", "Close program?"},
             {"illegal", "Illegal move!"},
             {"username", "Enter your username here"},
-            {"label", "Click to select. Enter a number. Click to deselect."}
+            {"label", "Click to select. Enter a number. Click to deselect."},
+            {"regionSum", "Current region sum: "},
+            {"congrats", "Congratulations you win!"},
+            {"lose", "Sorry you lost."}
     };
 }
