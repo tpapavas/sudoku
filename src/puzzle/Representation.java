@@ -5,8 +5,8 @@ public class Representation {
     private char[] format;
     private int size;
 
-    public Representation(int dimention, DisplayType type) {
-        this.size = dimention + 2;
+    public Representation(int length, DisplayType type) {
+        this.size = length + 2;
         this.type = type;
         this.format = new char[size];
         setTable();

@@ -10,20 +10,20 @@ import java.util.HashMap;
 public abstract class Sudoku {
     protected Player player;
     protected Puzzle puzzle;
+    protected int length;
     protected Representation representation;
-    protected int dimension;
     protected DisplayType type;
     protected int puzzleIndex;
 
     protected String filepath;
 
 
-    public Sudoku(int dimension, Player player) {
+    public Sudoku(int length, Player player) {
         this.player = player;
-        this.puzzle = new Puzzle(dimension);
-        this.representation = new Representation(dimension,DisplayType.NUMBERS);
+        this.puzzle = new Puzzle(length);
+        this.length = length;
+        this.representation = new Representation(length,DisplayType.NUMBERS);
         this.type = DisplayType.NUMBERS;
-        this.dimension = dimension;
         this.puzzleIndex = 1;
     }
 
@@ -36,21 +36,20 @@ public abstract class Sudoku {
      * @return true if the move is valid, otherwise false.
      */
     public boolean isLegalMove(int x, int i, int j) {
-        int dim = puzzle.getDimension();
         //Check row
-        for(int indJ = 0; indJ < dim; indJ++)
+        for(int indJ = 0; indJ < length; indJ++)
             if(indJ != j)
                 if(x == puzzle.getTable()[i][indJ])
                     return false;
 
         //Check column
-        for(int indI = 0; indI < dim; indI++)
+        for(int indI = 0; indI < length; indI++)
             if(indI != i)
                 if(x == puzzle.getTable()[indI][j])
                     return false;
 
         //Check square
-        int divisor = (int) (Math.sqrt(dim));
+        int divisor = puzzle.getDimension();
         int iStartPoint = (i / divisor) * divisor;
         int jStartPoint = (j / divisor) * divisor;
 
@@ -75,7 +74,7 @@ public abstract class Sudoku {
             return false;
         if(puzzle.getState()[i][j] == State.NEGATED)
             return false;
-        if (isLegalMove(x, i, j)) {
+        if(isLegalMove(x, i, j)) {
             puzzle.setValue(x, i, j);
             puzzle.increaseFilledCells();
             return true;
@@ -107,13 +106,13 @@ public abstract class Sudoku {
      */
     public ArrayList<ArrayList<ArrayList<Integer>>> help() {
         ArrayList<ArrayList<ArrayList<Integer>>> allPossibleMoves = new ArrayList<>();
-        for(int i = 0; i < dimension; i++) {
+        for(int i = 0; i < length; i++) {
             ArrayList<ArrayList<Integer>> linePossibleMoves = new ArrayList<>();
-            for (int j = 0; j < dimension; j++) {
+            for (int j = 0; j < length; j++) {
                 ArrayList<Integer> cellPossibleMoves = new ArrayList<>();
                 if (puzzle.getTable()[i][j] == 0) {
                     StringBuilder movesText = new StringBuilder();
-                    for (int x = 1; x < (dimension + 1); x++) {
+                    for (int x = 1; x < (length + 1); x++) {
                         if (isLegalMove(x, i, j)) {
                             movesText.append(representation.getFormat()[x]).append(" ");
                             cellPossibleMoves.add(x);
@@ -206,13 +205,12 @@ public abstract class Sudoku {
      * @return true if x is in corresponding interval, otherwise false.
      */
     private boolean isInsideLimits(int x) {
-        return x >= 0 && x < puzzle.getDimension();
+        return x >= 0 && x < length;
     }
 
     protected int findPuzzle() { return -1; };
     public Puzzle getPuzzle() { return puzzle; }
     public DisplayType getType() { return type; }
     public Representation getRepresentation() { return representation; }
-    public String getFilepath() { return filepath; }
     public int getPuzzleIndex() { return puzzleIndex; }
 }

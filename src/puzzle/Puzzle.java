@@ -5,17 +5,19 @@ public class Puzzle {
     private int[][] table;
     private int filledCells;
     private final int dimension;
+    private final int length;
     private final int numOfCells;
 
-    public Puzzle(int dim) {
-        this.dimension = dim;
-        this.numOfCells = dim*dim;
-        this.table = new int[dimension][dimension];
-        this.state = new State[dimension][dimension];
+    public Puzzle(int length) {
+        this.dimension = (int) Math.sqrt(length);
+        this.length = length;
+        this.numOfCells = (int) Math.pow(length,2);
+        this.table = new int[length][length];
+        this.state = new State[length][length];
         this.filledCells = 0;
 
-        for(int i = 0; i< dimension; i++){
-            for(int j = 0; j< dimension; j++){
+        for(int i = 0; i< length; i++){
+            for(int j = 0; j< length; j++){
                 this.table[i][j] = 0;
                 this.state[i][j] = State.ACCESSIBLE;
             }
@@ -34,11 +36,15 @@ public class Puzzle {
         return true;
     }
 
-    public boolean isFull(){ return filledCells == numOfCells; }
-    public void increaseFilledCells(){ filledCells++; }
-    public void decreaseFilledCells(){ filledCells--; }
-    public int[][] getTable(){ return table; }
-    public State[][] getState(){ return state; }
-    public int getDimension(){ return dimension; }
+    public boolean isFull() { return filledCells == numOfCells; }
+    public void increaseFilledCells() { filledCells++; }
+    public void decreaseFilledCells() { filledCells--; }
+
+    public int[][] getTable() { return table; }
+    public State[][] getState() { return state; }
+    public int getDimension() { return dimension; }
+    public int getLength() { return length; }
+    public int getNumOfCells() { return numOfCells; }
+
     public void setState(State s, int i, int j) {state[i][j] = s;}
 }

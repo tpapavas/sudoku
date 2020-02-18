@@ -19,11 +19,10 @@ public class Duidoku extends Sudoku {
 
     public boolean pcMove() {
         checkNullCells();
-
-        for(int i = 0; i < dimension; i++)
-            for(int j = 0; j < dimension; j++)
+        for(int i = 0; i < length; i++)
+            for(int j = 0; j < length; j++)
                 if(puzzle.getTable()[i][j] == 0)
-                    for(int x = 1; x <= dimension; x++)
+                    for(int x = 1; x <= length; x++)
                         if(super.doMove(x,i,j)) {
                             puzzle.setState(State.NEGATED,i,j);
                             checkNullCells();
@@ -33,14 +32,14 @@ public class Duidoku extends Sudoku {
     }
 
     private void checkNullCells() {
-        for(int i = 0; i < dimension; i++)
-            for(int j = 0; j < dimension; j++)
+        for(int i = 0; i < length; i++)
+            for(int j = 0; j < length; j++)
                 if(puzzle.getTable()[i][j] == 0) {
                     int x;
-                    for(x = 1; x <= dimension; x++)
+                    for(x = 1; x <= length; x++)
                         if(isLegalMove(x,i,j))
                             break;
-                    if(x == (dimension+1)) {
+                    if(x == (length+1)) {
                         puzzle.setValue(x,i,j);
                         puzzle.setState(State.NEGATED,i,j);
                         puzzle.increaseFilledCells();

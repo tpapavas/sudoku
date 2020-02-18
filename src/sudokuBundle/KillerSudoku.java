@@ -20,8 +20,8 @@ public class KillerSudoku extends Sudoku {
     public KillerSudoku(Player player) {
         super(9,player);
         regionSums = new ArrayList<>();
-        regionMap = new int[dimension][dimension];
-        gotCrossed = new boolean[dimension][dimension];
+        regionMap = new int[length][length];
+        gotCrossed = new boolean[length][length];
         sum = 0;
         filepath = (new File("").getAbsolutePath()) + "\\src\\resources\\killerPuzzles\\puzzle";
         readFromFile();
@@ -68,8 +68,8 @@ public class KillerSudoku extends Sudoku {
 
         sum = 0;
         regionIsCompleted = true;
-        for(int iInd = 0; iInd < dimension; iInd++)
-            for(int jInd = 0; jInd < dimension; jInd++)
+        for(int iInd = 0; iInd < length; iInd++)
+            for(int jInd = 0; jInd < length; jInd++)
                 gotCrossed[iInd][jInd] = false;
         findNext(i,j,regionMap[i][j],true);
         if(regionIsCompleted)

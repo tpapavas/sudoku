@@ -1,13 +1,9 @@
 package gui;
 
 import auxiliary.GameType;
-import player.Player;
-import puzzle.DisplayType;
-import puzzle.State;
-import sudokuBundle.ClassicSudoku;
-import sudokuBundle.Duidoku;
-import sudokuBundle.KillerSudoku;
-import sudokuBundle.Sudoku;
+import player.*;
+import puzzle.*;
+import sudokuBundle.*;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -26,7 +22,6 @@ public class GUI {
     static final Color COLOR_HIGHLIGHTED = new Color(241,239,0);
     static final Color COLOR_WRONG = new Color(255,0,0,179);
 
-    private int currentOriginI, currentOriginJ;
     private int lastMoveLinear;
 
     private boolean aButtonIsCurrentlyActive;
@@ -36,11 +31,10 @@ public class GUI {
 
     //GUI elements
     private JFrame frame;
-    private JPanel panelButtons,panelGameContainer,panelUserInfo,currentSquare;
+    private JPanel panelButtons,panelGameContainer,panelUserInfo;
     private JLabel labelInstructions,lbl1,lbl2,lbl3,lbl4;
     private JButton buttonEnter,buttonWordoku,buttonHelp,buttonSudoku,buttonKillerSudoku,buttonDuidoku,buttonUndo,buttonExitGame,buttonLang;
-    private cellButton[] cells;
-    private JPanel[] squares;
+    private CellButton[] cells;
     private JTextField fieldUsername;
 
     private Sudoku game;
@@ -51,7 +45,6 @@ public class GUI {
 
     public GUI() {
         lastMoveLinear = -1;
-        String finishMessage = "";
         aButtonIsCurrentlyActive = false;
         aGameIsCurrentlyActive = false;
         currentSelection = -1;
@@ -147,43 +140,49 @@ public class GUI {
         fieldUsername.requestFocusInWindow();
     }
 
-    private class cellButton {
+    private class CellButton {
         private JButton button;
         private boolean isClicked;
         private boolean enteredIllegalNumber;
 
+        private int displayValue;
         private int coordI;
         private int coordJ;
         private int coordLinear;
 
         private Color defaultColor;
 
-        public cellButton() {
+        public CellButton() {
             button = new JButton();
             isClicked = false;
             enteredIllegalNumber = true;
+            displayValue = 0;
             coordI = -1;
             coordJ = -1;
             coordLinear = -1;
             defaultColor = COLOR_DEFAULT;
 
             button.addActionListener((ActionEvent e) -> {
-                if(isClicked && aButtonIsCurrentlyActive)
+                if (isClicked && aButtonIsCurrentlyActive)
                     release();
-                else if(game.getPuzzle().getState()[coordI][coordJ] == State.NEGATED || aButtonIsCurrentlyActive) {
-                }
-                else if(!isClicked)
+                else if (game.getPuzzle().getState()[coordI][coordJ] == State.NEGATED || aButtonIsCurrentlyActive) {
+                } else if (!isClicked)
                     select();
             });
 
             button.addKeyListener(new KeyListener() {
-                @Override public void keyTyped(KeyEvent e) {}
-                @Override public void keyReleased(KeyEvent e) {}
+                @Override
+                public void keyTyped(KeyEvent e) {
+                }
+
+                @Override
+                public void keyReleased(KeyEvent e) {
+                }
 
                 @Override
                 public void keyPressed(KeyEvent keyEvent) {
                     int inputUpperLimit, inputLowerLimit;
-                    if(game.getType() == DisplayType.NUMBERS) {
+                    if (game.getType() == DisplayType.NUMBERS) {
                         inputUpperLimit = game instanceof Duidoku ? KeyEvent.VK_4 : KeyEvent.VK_9;
                         inputLowerLimit = KeyEvent.VK_1;
                     } else {
@@ -194,14 +193,14 @@ public class GUI {
                     int offset = game.getType() == DisplayType.NUMBERS ? 0 : 16;
                     int keyCode = keyEvent.getKeyCode();
 
-                    if(isClicked) {
-                        if(keyCode == KeyEvent.VK_ENTER)
+                    if (isClicked) {
+                        if (keyCode == KeyEvent.VK_ENTER)
                             release();
 
-                        if(keyCode >= inputLowerLimit && keyCode <= inputUpperLimit) {
-                            int displayValue = keyCode - 48 - offset;
+                        if (keyCode >= inputLowerLimit && keyCode <= inputUpperLimit) {
+                            displayValue = keyCode - 48 - offset;
 
-                            if(!game.isLegalMove(displayValue,coordI,coordJ)) {
+                            if (!game.isLegalMove(displayValue, coordI, coordJ)) {
                                 labelInstructions.setText(messages.getString("illegal"));
                                 enteredIllegalNumber = true;
 
@@ -215,9 +214,8 @@ public class GUI {
                                 timer.setRepeats(false);
                                 timer.start();
 
-                                game.getPuzzle().setValue(0,coordI,coordJ);
+                                game.getPuzzle().setValue(0, coordI, coordJ);
                             } else {
-                                game.doMove(displayValue,coordI,coordJ);
                                 labelInstructions.setText(messages.getString("label"));
                                 enteredIllegalNumber = false;
                                 button.setBackground(COLOR_HIGHLIGHTED);
@@ -230,29 +228,32 @@ public class GUI {
                 }
             });
 
-            if(game instanceof KillerSudoku) {
+            if (game instanceof KillerSudoku) {
                 button.addMouseMotionListener(new MouseMotionListener() {
-                    @Override public void mouseDragged(MouseEvent e) {}
+                    @Override
+                    public void mouseDragged(MouseEvent e) {
+                    }
 
                     @Override
                     public void mouseMoved(MouseEvent e) {
-                        if(!aButtonIsCurrentlyActive)
-                            if(!displayHints)
-                                labelInstructions.setText(messages.getString("regionSum") + ((KillerSudoku) game).getRegionSum(coordI,coordJ));
+                        if (!aButtonIsCurrentlyActive)
+                            if (!displayHints)
+                                labelInstructions.setText(messages.getString("regionSum") + ((KillerSudoku) game).getRegionSum(coordI, coordJ));
                     }
                 });
             }
         }
 
         private void release() {
-            if(enteredIllegalNumber)
+            if (enteredIllegalNumber)
                 button.setText(" ");
             else {
-                if(game.getPuzzle().isFull()) {
+                game.doMove(displayValue, coordI, coordJ);
+                if (game.getPuzzle().isFull()) {
                     labelInstructions.setText(messages.getString("congrats"));
                     updateStats(true);
                 }
-                if(game instanceof Duidoku) {
+                if (game instanceof Duidoku) {
                     if (((Duidoku) game).pcMove()) {
                         if (game.getPuzzle().isFull()) {
                             labelInstructions.setText(messages.getString("lose"));
@@ -268,7 +269,7 @@ public class GUI {
             button.setBackground(defaultColor);
             currentSelection = -1;
 
-            if(displayHints) {
+            if (displayHints) {
                 displayHints = false;
                 labelInstructions.setText(messages.getString("label"));
                 labelInstructions.setForeground(Color.black);
@@ -283,44 +284,39 @@ public class GUI {
         }
 
         //getters
-        private JButton getButton() { return button; }
-        private int getCoordI() { return coordI; }
-        private int getCoordJ() { return coordJ; }
+        public JButton getButton() { return button; }
+        public int getCoordI() { return coordI; }
+        public int getCoordJ() { return coordJ; }
 
         //setters
-        private void setCoordI(int c) { coordI = c; }
-        private void setCoordJ(int c) { coordJ = c; }
-        private void setCoordLinear(int c) { coordLinear = c; }
-        private void setDefaultColor(Color c) { defaultColor = c; }
+        public void setCoordI(int c) { coordI = c; }
+        public void setCoordJ(int c) { coordJ = c; }
+        public void setCoordLinear(int c) { coordLinear = c; }
+        public void setDefaultColor(Color c) { defaultColor = c; }
     }
 
     private void setupActionListeners() {
+        class GameListener implements ActionListener {
+            GameType gameType;
+
+            GameListener(GameType gameType) { this.gameType = gameType; }
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(!aGameIsCurrentlyActive) {
+                    setupGame(gameType);
+                    labelInstructions.setText(messages.getString("label"));
+                    aGameIsCurrentlyActive = true;
+                }
+            }
+        }
+
         //---BUTTON SUDOKU
-        buttonSudoku.addActionListener((ActionEvent e) -> {
-            if(!aGameIsCurrentlyActive) {
-                setupClassicSudoku();
-                labelInstructions.setText(messages.getString("label"));
-                aGameIsCurrentlyActive = true;
-            }
-        });
-
+        buttonSudoku.addActionListener(new GameListener(GameType.CLASSIC_SUDOKU));
         //---BUTTON KILLER SUDOKU
-        buttonKillerSudoku.addActionListener((ActionEvent e) -> {
-            if(!aGameIsCurrentlyActive) {
-                setupKillerSudoku();
-                labelInstructions.setText(messages.getString("label"));
-                aGameIsCurrentlyActive = true;
-            }
-        });
-
+        buttonKillerSudoku.addActionListener(new GameListener(GameType.KILLER_SUDOKU));
         //---BUTTON DUIDOKU
-        buttonDuidoku.addActionListener((ActionEvent e) -> {
-            if(!aGameIsCurrentlyActive) {
-                setupDuidoku();
-                labelInstructions.setText(messages.getString("label"));
-                aGameIsCurrentlyActive = true;
-            }
-        });
+        buttonDuidoku.addActionListener(new GameListener(GameType.DUIDOKU));
 
         //---BUTTON UNDO
         buttonUndo.addActionListener((ActionEvent e) -> {
@@ -439,60 +435,24 @@ public class GUI {
         });
     }
 
-    /**
-     * This function cretes a new game. Game mode is Classic Sudoku. It creates a new classic sudoku object that holds the
-     * puzzle array and performs the game logic.
-     * It creates a panel that contains all the cells. At the same time it assigns the cartesian coordinates to each cell button.
-     */
-    private void setupClassicSudoku() { setupGame(GameType.CLASSIC_SUDOKU); }
+    private void setupGame(GameType gameType) {
+        initializeGame(gameType);
 
-    /**
-     * This function cretes a new game. Game mode is Killer Sudoku. It creates a new killer sudoku object that holds the
-     * puzzle array and performs the game logic.
-     * It creates a panel that contains all the cells. At the same time it assigns the cartesian coordinates to each cell button.
-     * It also paints the cells randomly a different color.
-     */
-    private void setupKillerSudoku() {
-        setupGame(GameType.KILLER_SUDOKU);
+        JPanel currentSquare = null;
+        JPanel[] squares;
 
-        int numberOfRegions = ((KillerSudoku) game).getNumberOfRegions();
-        Color[] regionsColorsMap = new Color[numberOfRegions];
-
-        Random r = new Random();
-        for(int i=0; i<numberOfRegions; i++) {
-            regionsColorsMap[i] = new Color(r.nextInt(120)+120, r.nextInt(120)+120, r.nextInt(120)+120);
-        }
-
-        //set cell appearance and add to square
-        for(int k = 0; k < (int)Math.pow(game.getPuzzle().getDimension(),2); k++) {
-            cells[k].getButton().setBackground(regionsColorsMap[((KillerSudoku) game).getCellRegion(cells[k].getCoordI(), cells[k].getCoordJ())]);
-            cells[k].setDefaultColor(regionsColorsMap[((KillerSudoku) game).getCellRegion(cells[k].getCoordI(), cells[k].getCoordJ())]);
-            cells[k].getButton().setText(" ");
-        }
-    }
-
-    private void setupDuidoku() { setupGame(GameType.DUIDOKU); }
-
-    private void setupGame(GameType type) {
-        if(type == GameType.CLASSIC_SUDOKU)
-            game = new ClassicSudoku(player);
-        else if(type == GameType.KILLER_SUDOKU)
-            game = new KillerSudoku(player);
-        else
-            game = new Duidoku(player);
-
-
-        currentSquare = null;
-        currentOriginI = 0;
-        currentOriginJ = 0;
+        int currentOriginI = 0;
+        int currentOriginJ = 0;
         int[] coordinates = {0,0};  //helper array to pass by reference and store the coordinates from getCoordinates
         int squaresCount = 0;
-        int numOfCells = (int) Math.pow(game.getPuzzle().getDimension(),2);
         int dimension = game.getPuzzle().getDimension();
-        cells = new cellButton[numOfCells];
-        squares = new JPanel[dimension];
+        int length = game.getPuzzle().getLength();
+        int numOfCells = game.getPuzzle().getNumOfCells();
 
-        JPanel panelGame = new JPanel(new GridLayout((int)Math.sqrt(dimension), (int)Math.sqrt(dimension), 3, 3));
+        cells = new CellButton[numOfCells];
+        squares = new JPanel[length];
+
+        JPanel panelGame = new JPanel(new GridLayout(dimension,dimension,3,3));
         panelGame.setBackground(COLOR_MEDIUM_GREY);
         panelGameContainer.add(panelGame);
 
@@ -501,16 +461,16 @@ public class GUI {
         //square-level coordinates offest the table-level coordinates ('current origins')
         for(int k = 0; k < numOfCells; k++) {
             //create the cell
-            cells[k] = new cellButton();
+            cells[k] = new CellButton();
             cells[k].setCoordLinear(k);
 
             //create square, set current origin
-            if((k%dimension) == 0) {
+            if((k % length) == 0) {
                 //helper variable to avoid calculating k%9 every time
                 squaresCount++;
 
                 //calculate table-level coordinates
-                getCoordinates(squaresCount-1,(int)Math.sqrt(dimension),1,coordinates);
+                getCoordinates(squaresCount-1,dimension,1,coordinates);
                 currentOriginI = coordinates[0];
                 currentOriginJ = coordinates[1];
 
@@ -521,13 +481,13 @@ public class GUI {
                 currentSquare = squares[squaresCount-1];
 
                 //set square appearence and add to game container (JPanel)
-                currentSquare.setLayout(new GridLayout((int)Math.sqrt(dimension),(int)Math.sqrt(dimension),0,0));
+                currentSquare.setLayout(new GridLayout(dimension,dimension,0,0));
                 currentSquare.setBorder(BorderFactory.createEmptyBorder());
                 panelGame.add(currentSquare);
             }
 
             //calculate square-level coordinates and use them to offset the table-level coordinates (current origins)
-            getCoordinates(squaresCount == 1 ? k : (k % (game.getPuzzle().getDimension() * (squaresCount-1))),(int)Math.sqrt(dimension),0,coordinates);
+            getCoordinates(squaresCount == 1 ? k : (k % (length*(squaresCount-1))),dimension,0,coordinates);
 
             cells[k].setCoordI(currentOriginI + coordinates[0]);
             cells[k].setCoordJ(currentOriginJ + coordinates[1]);
@@ -544,7 +504,43 @@ public class GUI {
             currentSquare.add(cells[k].getButton());
         }
 
+        if(gameType == GameType.KILLER_SUDOKU) {
+            int numberOfRegions = ((KillerSudoku) game).getNumberOfRegions();
+            Color[] regionsColorsMap = new Color[numberOfRegions];
+
+            Random r = new Random();
+            for(int i=0; i<numberOfRegions; i++) {
+                regionsColorsMap[i] = new Color(r.nextInt(120)+120, r.nextInt(120)+120, r.nextInt(120)+120);
+            }
+
+            //set cell appearance and add to square
+            for(int k = 0; k < game.getPuzzle().getNumOfCells(); k++) {
+                cells[k].getButton().setBackground(regionsColorsMap[((KillerSudoku) game).getCellRegion(cells[k].getCoordI(), cells[k].getCoordJ())]);
+                cells[k].setDefaultColor(regionsColorsMap[((KillerSudoku) game).getCellRegion(cells[k].getCoordI(), cells[k].getCoordJ())]);
+                cells[k].getButton().setText(" ");
+            }
+        }
+
         panelGame.setVisible(true);
+    }
+
+    /**
+     * Creates a new Sudoku, based on value of gameType variable.
+     * @param gameType the type of Sudoku.
+     */
+    private void initializeGame(GameType gameType) {
+        switch (gameType) {
+            case CLASSIC_SUDOKU:
+                game = new ClassicSudoku(player);
+                break;
+
+            case KILLER_SUDOKU:
+                game = new KillerSudoku(player);
+                break;
+
+            default:
+                game = new Duidoku(player);
+        }
     }
 
     /**
@@ -597,7 +593,7 @@ public class GUI {
      * Updates the display type. Letters or words
      */
     private void updateCellsRepresentation() {
-        int numOfCells = (int) Math.pow(game.getPuzzle().getDimension(),2);
+        int numOfCells = game.getPuzzle().getNumOfCells();
         for(int k = 0; k < numOfCells; k++)
             cells[k].getButton().setText(Character.toString(game.getRepresentation().getFormat()[game.getPuzzle().getTable()[cells[k].getCoordI()][cells[k].getCoordJ()]]));
     }
@@ -615,7 +611,7 @@ public class GUI {
     }
 
     private void refreshTable() {
-        int numOfCells = (int) Math.pow(game.getPuzzle().getDimension(),2);
+        int numOfCells = game.getPuzzle().getNumOfCells();
         for(int k = 0; k < numOfCells; k++)
             cells[k].getButton().setText(String.valueOf(game.getRepresentation().getFormat()[game.getPuzzle().getTable()[cells[k].getCoordI()][cells[k].getCoordJ()]]));
     }
