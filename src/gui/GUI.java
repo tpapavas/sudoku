@@ -1,5 +1,6 @@
 package gui;
 
+import auxiliary.GameType;
 import player.Player;
 import puzzle.DisplayType;
 import puzzle.State;
@@ -443,36 +444,73 @@ public class GUI {
      * puzzle array and performs the game logic.
      * It creates a panel that contains all the cells. At the same time it assigns the cartesian coordinates to each cell button.
      */
-    private void setupClassicSudoku() {
-        JPanel panelGameClassic = new JPanel(new GridLayout(3, 3, 3, 3));
-        panelGameClassic.setBackground(COLOR_MEDIUM_GREY);
-        panelGameContainer.add(panelGameClassic);
+    private void setupClassicSudoku() { setupGame(GameType.CLASSIC_SUDOKU); }
 
-        game = new ClassicSudoku(player);
+    /**
+     * This function cretes a new game. Game mode is Killer Sudoku. It creates a new killer sudoku object that holds the
+     * puzzle array and performs the game logic.
+     * It creates a panel that contains all the cells. At the same time it assigns the cartesian coordinates to each cell button.
+     * It also paints the cells randomly a different color.
+     */
+    private void setupKillerSudoku() {
+        setupGame(GameType.KILLER_SUDOKU);
 
-        cells = new cellButton[81];
-        squares = new JPanel[9];
+        int numberOfRegions = ((KillerSudoku) game).getNumberOfRegions();
+        Color[] regionsColorsMap = new Color[numberOfRegions];
+
+        Random r = new Random();
+        for(int i=0; i<numberOfRegions; i++) {
+            regionsColorsMap[i] = new Color(r.nextInt(120)+120, r.nextInt(120)+120, r.nextInt(120)+120);
+        }
+
+        //set cell appearance and add to square
+        for(int k = 0; k < (int)Math.pow(game.getPuzzle().getDimension(),2); k++) {
+            cells[k].getButton().setBackground(regionsColorsMap[((KillerSudoku) game).getCellRegion(cells[k].getCoordI(), cells[k].getCoordJ())]);
+            cells[k].setDefaultColor(regionsColorsMap[((KillerSudoku) game).getCellRegion(cells[k].getCoordI(), cells[k].getCoordJ())]);
+            cells[k].getButton().setText(" ");
+        }
+    }
+
+    private void setupDuidoku() { setupGame(GameType.DUIDOKU); }
+
+    private void setupGame(GameType type) {
+        if(type == GameType.CLASSIC_SUDOKU)
+            game = new ClassicSudoku(player);
+        else if(type == GameType.KILLER_SUDOKU)
+            game = new KillerSudoku(player);
+        else
+            game = new Duidoku(player);
+
+
         currentSquare = null;
         currentOriginI = 0;
         currentOriginJ = 0;
         int[] coordinates = {0,0};  //helper array to pass by reference and store the coordinates from getCoordinates
         int squaresCount = 0;
+        int numOfCells = (int) Math.pow(game.getPuzzle().getDimension(),2);
+        int dimension = game.getPuzzle().getDimension();
+        cells = new cellButton[numOfCells];
+        squares = new JPanel[dimension];
+
+        JPanel panelGame = new JPanel(new GridLayout((int)Math.sqrt(dimension), (int)Math.sqrt(dimension), 3, 3));
+        panelGame.setBackground(COLOR_MEDIUM_GREY);
+        panelGameContainer.add(panelGame);
 
         //create cell (JButton) and assign coordinates (from linear 0-80 to cartesian [0,9]x[0,9])
         //coordinates are calculated at separate levels. First at table-level and then at square-level
         //square-level coordinates offest the table-level coordinates ('current origins')
-        for(int k = 0; k < 81; k++) {
+        for(int k = 0; k < numOfCells; k++) {
             //create the cell
             cells[k] = new cellButton();
             cells[k].setCoordLinear(k);
 
             //create square, set current origin
-            if((k%9) == 0) {
+            if((k%dimension) == 0) {
                 //helper variable to avoid calculating k%9 every time
                 squaresCount++;
 
                 //calculate table-level coordinates
-                getCoordinates(squaresCount-1,3,1,coordinates);
+                getCoordinates(squaresCount-1,(int)Math.sqrt(dimension),1,coordinates);
                 currentOriginI = coordinates[0];
                 currentOriginJ = coordinates[1];
 
@@ -483,13 +521,13 @@ public class GUI {
                 currentSquare = squares[squaresCount-1];
 
                 //set square appearence and add to game container (JPanel)
-                currentSquare.setLayout(new GridLayout(3,3,0,0));
+                currentSquare.setLayout(new GridLayout((int)Math.sqrt(dimension),(int)Math.sqrt(dimension),0,0));
                 currentSquare.setBorder(BorderFactory.createEmptyBorder());
-                panelGameClassic.add(currentSquare);
+                panelGame.add(currentSquare);
             }
 
             //calculate square-level coordinates and use them to offset the table-level coordinates (current origins)
-            getCoordinates(squaresCount == 1 ? k : (k % (9 * (squaresCount-1))),3,0,coordinates);
+            getCoordinates(squaresCount == 1 ? k : (k % (game.getPuzzle().getDimension() * (squaresCount-1))),(int)Math.sqrt(dimension),0,coordinates);
 
             cells[k].setCoordI(currentOriginI + coordinates[0]);
             cells[k].setCoordJ(currentOriginJ + coordinates[1]);
@@ -506,141 +544,7 @@ public class GUI {
             currentSquare.add(cells[k].getButton());
         }
 
-        panelGameClassic.setVisible(true);
-    }
-
-    /**
-     * This function cretes a new game. Game mode is Killer Sudoku. It creates a new killer sudoku object that holds the
-     * puzzle array and performs the game logic.
-     * It creates a panel that contains all the cells. At the same time it assigns the cartesian coordinates to each cell button.
-     * It also paints the cells randomly a different color.
-     */
-    private void setupKillerSudoku() {
-        JPanel panelGameKiller = new JPanel(new GridLayout(3, 3, 3, 3));
-        panelGameKiller.setBackground(COLOR_MEDIUM_GREY);
-        panelGameContainer.add(panelGameKiller);
-
-        game = new KillerSudoku(player);
-
-        cells = new cellButton[81];
-        squares = new JPanel[9];
-        currentSquare = null;
-        currentOriginI = 0;
-        currentOriginJ = 0;
-        int[] coordinates = {0,0};  //helper array to pass by reference and store the coordinates from getCoordinates
-        int squaresCount = 0;
-        int numberOfRegions = ((KillerSudoku) game).getNumberOfRegions();
-        Color[] regionsColorsMap = new Color[numberOfRegions];
-
-        Random r = new Random();
-        for(int i=0; i<numberOfRegions; i++) {
-            regionsColorsMap[i] = new Color(r.nextInt(120)+120, r.nextInt(120)+120, r.nextInt(120)+120);
-        }
-
-        //create cell (JButton) and assign coordinates (from linear 0-80 to cartesian [0,9]x[0,9])
-        //coordinates are calculated at separate levels. First at table-level and then at square-level
-        //square-level coordinates offest the table-level coordinates ('current origins')
-        for(int k = 0; k < 81; k++) {
-            //create the cell
-            cells[k] = new cellButton();
-            cells[k].setCoordLinear(k);
-
-            //create square, set current origin
-            if((k%9) == 0) {
-                //helper variable to avoid calculating k%9 every time
-                squaresCount++;
-
-                //calculate table-level coordinates
-                getCoordinates(squaresCount-1,3,1,coordinates);
-                currentOriginI = coordinates[0];
-                currentOriginJ = coordinates[1];
-
-                //create square container (JPanel)
-                squares[squaresCount-1] = new JPanel();
-
-                //helper variable to use within these two loops
-                currentSquare = squares[squaresCount-1];
-
-                //set square appearence and add to game container (JPanel)
-                currentSquare.setLayout(new GridLayout(3,3,0,0));
-                currentSquare.setBorder(BorderFactory.createEmptyBorder());
-                panelGameKiller.add(currentSquare);
-            }
-
-            //calculate square-level coordinates and use them to offset the table-level coordinates (current origins)
-            getCoordinates(squaresCount == 1 ? k : (k % (9 * (squaresCount-1))),3,0,coordinates);
-
-            cells[k].setCoordI(currentOriginI + coordinates[0]);
-            cells[k].setCoordJ(currentOriginJ + coordinates[1]);
-
-            //set cell appearance and add to square
-            cells[k].getButton().setBackground(regionsColorsMap[((KillerSudoku) game).getCellRegion(cells[k].getCoordI(),cells[k].getCoordJ())]);
-            cells[k].setDefaultColor(regionsColorsMap[((KillerSudoku) game).getCellRegion(cells[k].getCoordI(),cells[k].getCoordJ())]);
-            cells[k].getButton().setText(" ");
-        }
-
-        panelGameKiller.setVisible(true);
-    }
-
-    private void setupDuidoku() {
-        JPanel panelGameDuidoku = new JPanel(new GridLayout(2, 2, 1, 1));
-        panelGameDuidoku.setBackground(COLOR_MEDIUM_GREY);
-        panelGameContainer.add(panelGameDuidoku);
-
-        game = new Duidoku(player);
-
-        cells = new cellButton[16];
-        squares = new JPanel[4];
-        currentSquare = null;
-        currentOriginI = 0;
-        currentOriginJ = 0;
-        int[] coordinates = {0,0};  //helper array to pass by reference and store the coordinates from getCoordinates
-        int squaresCount = 0;
-
-        //create cell (JButton) and assign coordinates (from linear 0-80 to cartesian [0,9]x[0,9])
-        //coordinates are calculated at separate levels. First at table-level and then at square-level
-        //square-level coordinates offest the table-level coordinates ('current origins')
-        for(int k = 0; k < 16; k++) {
-            //create the cell
-            cells[k] = new cellButton();
-            cells[k].setCoordLinear(k);
-
-            //create square, set current origin
-            if((k%4) == 0) {
-                //helper variable to avoid calculating k%9 every time
-                squaresCount++;
-
-                //calculate table-level coordinates
-                getCoordinates(squaresCount-1,2,1,coordinates);
-                currentOriginI = coordinates[0];
-                currentOriginJ = coordinates[1];
-
-                //create square container (JPanel)
-                squares[squaresCount-1] = new JPanel();
-
-                //helper variable to use within these two loops
-                currentSquare = squares[squaresCount-1];
-
-                //set square appearence and add to game container (JPanel)
-                currentSquare.setLayout(new GridLayout(2,2,0,0));
-                currentSquare.setBorder(BorderFactory.createEmptyBorder());
-                panelGameDuidoku.add(currentSquare);
-            }
-
-            //calculate square-level coordinates and use them to offset the table-level coordinates (current origins)
-            getCoordinates(squaresCount == 1 ? k : (k % (4 * (squaresCount-1))),2,0,coordinates);
-
-            cells[k].setCoordI(currentOriginI + coordinates[0]);
-            cells[k].setCoordJ(currentOriginJ + coordinates[1]);
-
-            //set cell appearance and add to square
-            cells[k].getButton().setBackground(COLOR_DEFAULT);
-            cells[k].getButton().setText(" ");
-
-            currentSquare.add(cells[k].getButton());
-        }
-
-        panelGameDuidoku.setVisible(true);
+        panelGame.setVisible(true);
     }
 
     /**
@@ -693,7 +597,7 @@ public class GUI {
      * Updates the display type. Letters or words
      */
     private void updateCellsRepresentation() {
-        int numOfCells = (int) Math.pow(game.getPuzzle().getDimention(),2);
+        int numOfCells = (int) Math.pow(game.getPuzzle().getDimension(),2);
         for(int k = 0; k < numOfCells; k++)
             cells[k].getButton().setText(Character.toString(game.getRepresentation().getFormat()[game.getPuzzle().getTable()[cells[k].getCoordI()][cells[k].getCoordJ()]]));
     }
@@ -711,7 +615,7 @@ public class GUI {
     }
 
     private void refreshTable() {
-        int numOfCells = (int) Math.pow(game.getPuzzle().getDimention(),2);
+        int numOfCells = (int) Math.pow(game.getPuzzle().getDimension(),2);
         for(int k = 0; k < numOfCells; k++)
             cells[k].getButton().setText(String.valueOf(game.getRepresentation().getFormat()[game.getPuzzle().getTable()[cells[k].getCoordI()][cells[k].getCoordJ()]]));
     }

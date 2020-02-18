@@ -4,18 +4,18 @@ public class Puzzle {
     private State[][] state;
     private int[][] table;
     private int filledCells;
-    private final int dimention;
+    private final int dimension;
     private final int numOfCells;
 
     public Puzzle(int dim) {
-        this.dimention = dim;
+        this.dimension = dim;
         this.numOfCells = dim*dim;
-        this.table = new int[dimention][dimention];
-        this.state = new State[dimention][dimention];
+        this.table = new int[dimension][dimension];
+        this.state = new State[dimension][dimension];
         this.filledCells = 0;
 
-        for(int i =0; i<dimention; i++){
-            for(int j = 0; j<dimention; j++){
+        for(int i = 0; i< dimension; i++){
+            for(int j = 0; j< dimension; j++){
                 this.table[i][j] = 0;
                 this.state[i][j] = State.ACCESSIBLE;
             }
@@ -39,6 +39,6 @@ public class Puzzle {
     public void decreaseFilledCells(){ filledCells--; }
     public int[][] getTable(){ return table; }
     public State[][] getState(){ return state; }
-    public int getDimention(){ return dimention; }
+    public int getDimension(){ return dimension; }
     public void setState(State s, int i, int j) {state[i][j] = s;}
 }

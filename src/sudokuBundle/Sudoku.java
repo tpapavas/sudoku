@@ -36,7 +36,7 @@ public abstract class Sudoku {
      * @return true if the move is valid, otherwise false.
      */
     public boolean isLegalMove(int x, int i, int j) {
-        int dim = puzzle.getDimention();
+        int dim = puzzle.getDimension();
         //Check row
         for(int indJ = 0; indJ < dim; indJ++)
             if(indJ != j)
@@ -206,7 +206,7 @@ public abstract class Sudoku {
      * @return true if x is in corresponding interval, otherwise false.
      */
     private boolean isInsideLimits(int x) {
-        return x >= 0 && x < puzzle.getDimention();
+        return x >= 0 && x < puzzle.getDimension();
     }
 
     protected int findPuzzle() { return -1; };
