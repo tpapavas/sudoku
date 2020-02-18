@@ -9,7 +9,6 @@ import sudokuBundle.KillerSudoku;
 import sudokuBundle.Sudoku;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
@@ -29,8 +28,6 @@ public class GUI {
     private int currentOriginI, currentOriginJ;
     private int lastMoveLinear;
 
-    private String finishMessage;
-
     private boolean aButtonIsCurrentlyActive;
     private boolean aGameIsCurrentlyActive;
     private int currentSelection;
@@ -38,24 +35,22 @@ public class GUI {
 
     //GUI elements
     private JFrame frame;
-    private JPanel panelMain, panelButtons, panelGameContainer, panelUserInfo, currentSquare;
-    private JPanel panelGameClassic, panelGameKiller, panelGameDuidoku;
-    private JLabel labelInstructions, labelUserInfo, lbl1, lbl2, lbl3, lbl4;
-    private JButton buttonEnter, buttonWordoku, buttonHelp, buttonSudoku, buttonKillerSudoku, buttonDuidoku, buttonUndo, buttonExitGame, buttonLang;
+    private JPanel panelButtons,panelGameContainer,panelUserInfo,currentSquare;
+    private JLabel labelInstructions,lbl1,lbl2,lbl3,lbl4;
+    private JButton buttonEnter,buttonWordoku,buttonHelp,buttonSudoku,buttonKillerSudoku,buttonDuidoku,buttonUndo,buttonExitGame,buttonLang;
     private cellButton[] cells;
     private JPanel[] squares;
     private JTextField fieldUsername;
 
-    private Sudoku currentGame;
+    private Sudoku game;
+    private Player player;
 
     private Locale locale;
     private ResourceBundle messages;
 
-    private Player player;
-
     public GUI() {
         lastMoveLinear = -1;
-        finishMessage = "";
+        String finishMessage = "";
         aButtonIsCurrentlyActive = false;
         aGameIsCurrentlyActive = false;
         currentSelection = -1;
@@ -66,17 +61,20 @@ public class GUI {
 
         frame = new JFrame("Sudoku Game Suite");
 
-        panelMain = new JPanel();
+        JPanel panelMain = new JPanel();
         panelMain.setLayout(new BorderLayout());
 
+        //setup panelButtons
         panelButtons = new JPanel();
         panelButtons.setLayout(new GridLayout(13,1));
         panelButtons.setBorder(new EmptyBorder(12,7,12,7));
 
+        //setup panelGameContainer
         panelGameContainer = new JPanel(new GridLayout(1,1));
         panelGameContainer.setBorder(new EmptyBorder(10,10,10,10));
         panelGameContainer.setBackground(COLOR_MEDIUM_GREY);
 
+        //setup labelInstructions
         labelInstructions = new JLabel(messages.getString("welcome"));
         labelInstructions.setBorder(new EmptyBorder(5,5,5,5));
 
@@ -84,6 +82,7 @@ public class GUI {
         panelMain.add(panelButtons,BorderLayout.LINE_START);
         panelMain.add(panelGameContainer,BorderLayout.CENTER);
 
+        //initialize buttons
         buttonHelp = new JButton(messages.getString("help"));
         buttonWordoku = new JButton(messages.getString("wordoku"));
         buttonSudoku = new JButton(messages.getString("sudoku"));
@@ -93,6 +92,7 @@ public class GUI {
         buttonExitGame = new JButton(messages.getString("exit"));
         buttonLang = new JButton(messages.getString("language"));
 
+        //setup labels
         lbl1 = new JLabel(messages.getString("tools"));
         lbl1.setHorizontalAlignment(SwingConstants.CENTER);
 
@@ -118,20 +118,18 @@ public class GUI {
         panelButtons.add(lbl4);
         panelButtons.add(buttonExitGame);
 
-
+        //setup panelUserInfo
         panelUserInfo = new JPanel(new BorderLayout());
+        panelUserInfo.setBorder(new EmptyBorder(120,10,260,10));
+        panelUserInfo.setBackground(COLOR_DEFAULT);
 
         fieldUsername = new JTextField("",15);
-        labelUserInfo = new JLabel(messages.getString("username"));
-
+        JLabel labelUserInfo = new JLabel(messages.getString("username"));
         buttonEnter = new JButton("Enter");
 
         panelUserInfo.add(buttonEnter,BorderLayout.LINE_END);
         panelUserInfo.add(labelUserInfo,BorderLayout.NORTH);
         panelUserInfo.add(fieldUsername,BorderLayout.CENTER);
-
-        panelUserInfo.setBorder(new EmptyBorder(120,10,260,10));
-        panelUserInfo.setBackground(COLOR_DEFAULT);
 
         panelGameContainer.add(panelUserInfo);
 
@@ -171,7 +169,7 @@ public class GUI {
             button.addActionListener((ActionEvent e) -> {
                 if(isClicked && aButtonIsCurrentlyActive)
                     release();
-                else if(currentGame.getPuzzle().getState()[coordI][coordJ] == State.NEGATED || aButtonIsCurrentlyActive) {
+                else if(game.getPuzzle().getState()[coordI][coordJ] == State.NEGATED || aButtonIsCurrentlyActive) {
                 }
                 else if(!isClicked)
                     select();
@@ -184,15 +182,15 @@ public class GUI {
                 @Override
                 public void keyPressed(KeyEvent keyEvent) {
                     int inputUpperLimit, inputLowerLimit;
-                    if(currentGame.getType() == DisplayType.NUMBERS) {
-                        inputUpperLimit = currentGame instanceof Duidoku ? KeyEvent.VK_4 : KeyEvent.VK_9;
+                    if(game.getType() == DisplayType.NUMBERS) {
+                        inputUpperLimit = game instanceof Duidoku ? KeyEvent.VK_4 : KeyEvent.VK_9;
                         inputLowerLimit = KeyEvent.VK_1;
                     } else {
-                        inputUpperLimit = currentGame instanceof Duidoku ? KeyEvent.VK_D : KeyEvent.VK_I;
+                        inputUpperLimit = game instanceof Duidoku ? KeyEvent.VK_D : KeyEvent.VK_I;
                         inputLowerLimit = KeyEvent.VK_A;
                     }
 
-                    int offset = currentGame.getType() == DisplayType.NUMBERS ? 0 : 16;
+                    int offset = game.getType() == DisplayType.NUMBERS ? 0 : 16;
                     int keyCode = keyEvent.getKeyCode();
 
                     if(isClicked) {
@@ -202,7 +200,7 @@ public class GUI {
                         if(keyCode >= inputLowerLimit && keyCode <= inputUpperLimit) {
                             int displayValue = keyCode - 48 - offset;
 
-                            if(!currentGame.isLegalMove(displayValue,coordI,coordJ)) {
+                            if(!game.isLegalMove(displayValue,coordI,coordJ)) {
                                 labelInstructions.setText(messages.getString("illegal"));
                                 enteredIllegalNumber = true;
 
@@ -216,22 +214,22 @@ public class GUI {
                                 timer.setRepeats(false);
                                 timer.start();
 
-                                currentGame.getPuzzle().setValue(0,coordI,coordJ);
+                                game.getPuzzle().setValue(0,coordI,coordJ);
                             } else {
-                                currentGame.doMove(displayValue,coordI,coordJ);
+                                game.doMove(displayValue,coordI,coordJ);
                                 labelInstructions.setText(messages.getString("label"));
                                 enteredIllegalNumber = false;
                                 button.setBackground(COLOR_HIGHLIGHTED);
                                 lastMoveLinear = coordLinear;
                             }
 
-                            button.setText(String.valueOf(currentGame.getRepresentation().getFormat()[displayValue]));
+                            button.setText(String.valueOf(game.getRepresentation().getFormat()[displayValue]));
                         }
                     }
                 }
             });
 
-            if(currentGame instanceof KillerSudoku) {
+            if(game instanceof KillerSudoku) {
                 button.addMouseMotionListener(new MouseMotionListener() {
                     @Override public void mouseDragged(MouseEvent e) {}
 
@@ -239,7 +237,7 @@ public class GUI {
                     public void mouseMoved(MouseEvent e) {
                         if(!aButtonIsCurrentlyActive)
                             if(!displayHints)
-                                labelInstructions.setText(messages.getString("regionSum") + ((KillerSudoku) currentGame).getRegionSum(coordI,coordJ));
+                                labelInstructions.setText(messages.getString("regionSum") + ((KillerSudoku) game).getRegionSum(coordI,coordJ));
                     }
                 });
             }
@@ -249,13 +247,13 @@ public class GUI {
             if(enteredIllegalNumber)
                 button.setText(" ");
             else {
-                if(currentGame.getPuzzle().isFull()) {
+                if(game.getPuzzle().isFull()) {
                     labelInstructions.setText(messages.getString("congrats"));
                     updateStats(true);
                 }
-                if(currentGame instanceof Duidoku) {
-                    if (((Duidoku) currentGame).pcMove()) {
-                        if (currentGame.getPuzzle().isFull()) {
+                if(game instanceof Duidoku) {
+                    if (((Duidoku) game).pcMove()) {
+                        if (game.getPuzzle().isFull()) {
                             labelInstructions.setText(messages.getString("lose"));
                             updateStats(false);
                         }
@@ -287,7 +285,6 @@ public class GUI {
         private JButton getButton() { return button; }
         private int getCoordI() { return coordI; }
         private int getCoordJ() { return coordJ; }
-        private int getCoordLinear() { return coordLinear; }
 
         //setters
         private void setCoordI(int c) { coordI = c; }
@@ -301,7 +298,7 @@ public class GUI {
         buttonSudoku.addActionListener((ActionEvent e) -> {
             if(!aGameIsCurrentlyActive) {
                 setupClassicSudoku();
-                labelInstructions.setText("label");
+                labelInstructions.setText(messages.getString("label"));
                 aGameIsCurrentlyActive = true;
             }
         });
@@ -310,7 +307,7 @@ public class GUI {
         buttonKillerSudoku.addActionListener((ActionEvent e) -> {
             if(!aGameIsCurrentlyActive) {
                 setupKillerSudoku();
-                labelInstructions.setText("label");
+                labelInstructions.setText(messages.getString("label"));
                 aGameIsCurrentlyActive = true;
             }
         });
@@ -319,7 +316,7 @@ public class GUI {
         buttonDuidoku.addActionListener((ActionEvent e) -> {
             if(!aGameIsCurrentlyActive) {
                 setupDuidoku();
-                labelInstructions.setText("label");
+                labelInstructions.setText(messages.getString("label"));
                 aGameIsCurrentlyActive = true;
             }
         });
@@ -327,7 +324,7 @@ public class GUI {
         //---BUTTON UNDO
         buttonUndo.addActionListener((ActionEvent e) -> {
             int ind = lastMoveLinear;
-            currentGame.undoMove(cells[ind].getCoordI(),cells[ind].getCoordJ());
+            game.undoMove(cells[ind].getCoordI(),cells[ind].getCoordJ());
         });
 
         //---BUTTON HELP
@@ -336,7 +333,7 @@ public class GUI {
                 displayHints = true;
 
                 ArrayList<Integer> hints;
-                hints = currentGame.help().get(cells[currentSelection].getCoordI()).get(cells[currentSelection].getCoordJ());
+                hints = game.help().get(cells[currentSelection].getCoordI()).get(cells[currentSelection].getCoordJ());
 
                 StringBuilder text = new StringBuilder("");
                 text.append("Hint: ");
@@ -363,14 +360,14 @@ public class GUI {
                         panelGameContainer.remove(0);
 
                         //write to players file
-                        if (currentGame.getPuzzle().isFull()) {
-                            currentGame.updatePlayersFile();
+                        if (game.getPuzzle().isFull()) {
+                            game.updatePlayersFile();
                             System.out.println("Loses: " + player.getDuidokuLoses());
                             System.out.println("Wins: " + player.getDuidokuWins());
                         }
 
                         //free memory
-                        currentGame = null;
+                        game = null;
                         aButtonIsCurrentlyActive = false;
 
                         labelInstructions.setText(messages.getString("gameSelection"));
@@ -394,12 +391,12 @@ public class GUI {
         //---BUTTON WORDOKU
         buttonWordoku.addActionListener((ActionEvent e) -> {
             DisplayType newType;
-            if (currentGame.getType() == DisplayType.NUMBERS)
+            if (game.getType() == DisplayType.NUMBERS)
                 newType = DisplayType.CAPITALS;
             else
                 newType = DisplayType.NUMBERS;
 
-            currentGame.changeRepresentation(newType);
+            game.changeRepresentation(newType);
             updateCellsRepresentation();
         });
 
@@ -447,11 +444,11 @@ public class GUI {
      * It creates a panel that contains all the cells. At the same time it assigns the cartesian coordinates to each cell button.
      */
     private void setupClassicSudoku() {
-        panelGameClassic = new JPanel(new GridLayout(3,3,3,3));
+        JPanel panelGameClassic = new JPanel(new GridLayout(3, 3, 3, 3));
         panelGameClassic.setBackground(COLOR_MEDIUM_GREY);
         panelGameContainer.add(panelGameClassic);
 
-        currentGame = new ClassicSudoku(player);
+        game = new ClassicSudoku(player);
 
         cells = new cellButton[81];
         squares = new JPanel[9];
@@ -498,13 +495,13 @@ public class GUI {
             cells[k].setCoordJ(currentOriginJ + coordinates[1]);
 
             //set cell appearance and add to square
-            if(currentGame.getPuzzle().getState()[cells[k].getCoordI()][cells[k].getCoordJ()] == State.ACCESSIBLE) {
+            if(game.getPuzzle().getState()[cells[k].getCoordI()][cells[k].getCoordJ()] == State.ACCESSIBLE) {
                 cells[k].getButton().setBackground(COLOR_DEFAULT);
                 cells[k].getButton().setText(" ");
             }
             else {
                 cells[k].getButton().setBackground(new Color(185, 185, 185));
-                cells[k].getButton().setText(Character.toString(currentGame.getRepresentation().getFormat()[currentGame.getPuzzle().getTable()[cells[k].getCoordI()][cells[k].getCoordJ()]]));
+                cells[k].getButton().setText(Character.toString(game.getRepresentation().getFormat()[game.getPuzzle().getTable()[cells[k].getCoordI()][cells[k].getCoordJ()]]));
             }
             currentSquare.add(cells[k].getButton());
         }
@@ -519,11 +516,11 @@ public class GUI {
      * It also paints the cells randomly a different color.
      */
     private void setupKillerSudoku() {
-        panelGameKiller = new JPanel(new GridLayout(3,3,3,3));
+        JPanel panelGameKiller = new JPanel(new GridLayout(3, 3, 3, 3));
         panelGameKiller.setBackground(COLOR_MEDIUM_GREY);
         panelGameContainer.add(panelGameKiller);
 
-        currentGame = new KillerSudoku(player);
+        game = new KillerSudoku(player);
 
         cells = new cellButton[81];
         squares = new JPanel[9];
@@ -532,7 +529,7 @@ public class GUI {
         currentOriginJ = 0;
         int[] coordinates = {0,0};  //helper array to pass by reference and store the coordinates from getCoordinates
         int squaresCount = 0;
-        int numberOfRegions = ((KillerSudoku)currentGame).getNumberOfRegions();
+        int numberOfRegions = ((KillerSudoku) game).getNumberOfRegions();
         Color[] regionsColorsMap = new Color[numberOfRegions];
 
         Random r = new Random();
@@ -577,8 +574,8 @@ public class GUI {
             cells[k].setCoordJ(currentOriginJ + coordinates[1]);
 
             //set cell appearance and add to square
-            cells[k].getButton().setBackground(regionsColorsMap[((KillerSudoku)currentGame).getCellRegion(cells[k].getCoordI(),cells[k].getCoordJ())]);
-            cells[k].setDefaultColor(regionsColorsMap[((KillerSudoku)currentGame).getCellRegion(cells[k].getCoordI(),cells[k].getCoordJ())]);
+            cells[k].getButton().setBackground(regionsColorsMap[((KillerSudoku) game).getCellRegion(cells[k].getCoordI(),cells[k].getCoordJ())]);
+            cells[k].setDefaultColor(regionsColorsMap[((KillerSudoku) game).getCellRegion(cells[k].getCoordI(),cells[k].getCoordJ())]);
             cells[k].getButton().setText(" ");
         }
 
@@ -586,11 +583,11 @@ public class GUI {
     }
 
     private void setupDuidoku() {
-        panelGameDuidoku = new JPanel(new GridLayout(2,2,1,1));
+        JPanel panelGameDuidoku = new JPanel(new GridLayout(2, 2, 1, 1));
         panelGameDuidoku.setBackground(COLOR_MEDIUM_GREY);
         panelGameContainer.add(panelGameDuidoku);
 
-        currentGame = new Duidoku(player);
+        game = new Duidoku(player);
 
         cells = new cellButton[16];
         squares = new JPanel[4];
@@ -696,26 +693,26 @@ public class GUI {
      * Updates the display type. Letters or words
      */
     private void updateCellsRepresentation() {
-        int numOfCells = (int) Math.pow(currentGame.getPuzzle().getDimention(),2);
+        int numOfCells = (int) Math.pow(game.getPuzzle().getDimention(),2);
         for(int k = 0; k < numOfCells; k++)
-            cells[k].getButton().setText(Character.toString(currentGame.getRepresentation().getFormat()[currentGame.getPuzzle().getTable()[cells[k].getCoordI()][cells[k].getCoordJ()]]));
+            cells[k].getButton().setText(Character.toString(game.getRepresentation().getFormat()[game.getPuzzle().getTable()[cells[k].getCoordI()][cells[k].getCoordJ()]]));
     }
 
     private void updateStats(boolean isWin) {
-        if (currentGame instanceof Duidoku)
+        if (game instanceof Duidoku)
             if (isWin)
                 player.increaseDuidokuWins();
             else
                 player.increaseDuidokuLoses();
-        else if(currentGame instanceof ClassicSudoku)
-            player.getHasPlayedSudoku()[currentGame.getPuzzleIndex() - 1] = true;
+        else if(game instanceof ClassicSudoku)
+            player.getHasPlayedSudoku()[game.getPuzzleIndex() - 1] = true;
         else
-            player.getHasPlayedKillerSudoku()[currentGame.getPuzzleIndex()-1] = true;
+            player.getHasPlayedKillerSudoku()[game.getPuzzleIndex()-1] = true;
     }
 
     private void refreshTable() {
-        int numOfCells = (int) Math.pow(currentGame.getPuzzle().getDimention(),2);
+        int numOfCells = (int) Math.pow(game.getPuzzle().getDimention(),2);
         for(int k = 0; k < numOfCells; k++)
-            cells[k].getButton().setText(String.valueOf(currentGame.getRepresentation().getFormat()[currentGame.getPuzzle().getTable()[cells[k].getCoordI()][cells[k].getCoordJ()]]));
+            cells[k].getButton().setText(String.valueOf(game.getRepresentation().getFormat()[game.getPuzzle().getTable()[cells[k].getCoordI()][cells[k].getCoordJ()]]));
     }
 }
