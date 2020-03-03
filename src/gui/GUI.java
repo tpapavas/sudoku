@@ -37,6 +37,11 @@ public class GUI {
     private CellButton[] cells;
     private JTextField fieldUsername;
 
+    //TEST//
+    private JMenuBar menuBar;
+    private JMenu menu;
+    ////////
+
     private Sudoku game;
     private Player player;
 
@@ -114,7 +119,7 @@ public class GUI {
 
         //setup panelUserInfo
         panelUserInfo = new JPanel(new BorderLayout());
-        panelUserInfo.setBorder(new EmptyBorder(120,10,260,10));
+        panelUserInfo.setBorder(new EmptyBorder(120,10,235,10));
         panelUserInfo.setBackground(COLOR_DEFAULT);
 
         fieldUsername = new JTextField("",15);
@@ -130,6 +135,19 @@ public class GUI {
         toggleChildButtons(panelButtons,false);
 
         setupActionListeners();
+
+        //TEST//
+        menu = new JMenu("Help");
+        JMenuItem menuItem = new JMenuItem("About");
+        menuItem.addActionListener((ActionEvent e)->{
+            JOptionPane.showMessageDialog(frame,"Sudoku Game, version 2.2","INFO",JOptionPane.INFORMATION_MESSAGE);
+        });
+        menu.add(menuItem);
+        menuBar = new JMenuBar();
+        menuBar.add(menu);
+        frame.setJMenuBar(menuBar);
+        ////////
+
 
         frame.add(panelMain);
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -165,9 +183,10 @@ public class GUI {
             button.addActionListener((ActionEvent e) -> {
                 if (isClicked && aButtonIsCurrentlyActive)
                     release();
-                else if (game.getPuzzle().getState()[coordI][coordJ] == State.NEGATED || aButtonIsCurrentlyActive) {
-                } else if (!isClicked)
+                else if (!isClicked && !aButtonIsCurrentlyActive && (game.getPuzzle().getState()[coordI][coordJ] == State.ACCESSIBLE)) {
                     select();
+                    //cells[15].button.setEnabled(false);
+                }
             });
 
             button.addKeyListener(new KeyListener() {
@@ -204,6 +223,7 @@ public class GUI {
                                 labelInstructions.setText(messages.getString("illegal"));
                                 enteredIllegalNumber = true;
 
+                                /*
                                 //timer to change to warning bg cell colour
                                 Timer timer = new Timer(100, new ActionListener() {
                                     @Override
@@ -212,7 +232,9 @@ public class GUI {
                                     }
                                 });
                                 timer.setRepeats(false);
-                                timer.start();
+                                timer.start(); */
+
+                                button.setBackground(COLOR_WRONG);
 
                                 game.getPuzzle().setValue(0, coordI, coordJ);
                             } else {
