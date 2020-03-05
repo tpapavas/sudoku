@@ -3,6 +3,7 @@ package player;
 import auxiliary.*;
 
 import java.io.*;
+import java.util.ArrayList;
 
 public class Player implements Serializable {
     private String nickname;
@@ -26,6 +27,22 @@ public class Player implements Serializable {
         this.duidokuWins = 0;
         this.duidokuLoses = 0;
         readFromFile();
+    }
+
+    public ArrayList<ArrayList<Integer>> puzzlePlayed() {
+        ArrayList<ArrayList<Integer>> indexes = new ArrayList<>();
+        ArrayList<Integer> classics = new ArrayList<>();
+        ArrayList<Integer> killers = new ArrayList<>();
+
+        for(int i = 0; i < numOfSudokuPuzzles; i++)
+            if(hasPlayedSudoku[i]) classics.add(i+1);
+        for(int i = 0; i < numOfKillerSudokuPuzzles; i++)
+            if(hasPlayedKillerSudoku[i]) killers.add(i+1);
+
+        indexes.add(classics);
+        indexes.add(killers);
+
+        return indexes;
     }
 
     private void readFromFile() {

@@ -144,6 +144,20 @@ public class GUI {
         JMenuItem statsItem = new JMenuItem("Show Stats");
         statsItem.addActionListener((ActionEvent e)->{
             StringBuilder stats = new StringBuilder();
+            StringBuilder classics = new StringBuilder();
+            StringBuilder killers = new StringBuilder();
+
+            ArrayList<ArrayList<Integer>> indexes = player.puzzlePlayed();
+
+            for(Integer x : indexes.get(GameType.CLASSIC_SUDOKU.getCode()))
+                classics.append(x).append(' ');
+            for(Integer x : indexes.get(GameType.KILLER_SUDOKU.getCode()))
+                killers.append(x).append(' ');
+            
+            stats.append("Classic Puzzles played").append('\n');
+            stats.append("  ").append(classics).append('\n');
+            stats.append("Killer Puzzles played").append('\n');
+            stats.append("  ").append(killers).append('\n');
             stats.append("Duidoku").append('\n');
             stats.append("  wins:  ").append(player.getDuidokuWins()).append('\n');
             stats.append("  loses: ").append(player.getDuidokuLoses());
