@@ -37,11 +37,6 @@ public class GUI {
     private CellButton[] cells;
     private JTextField fieldUsername;
 
-    //TEST//
-    private JMenuBar menuBar;
-    private JMenu menu;
-    ////////
-
     private Sudoku game;
     private Player player;
 
@@ -136,15 +131,31 @@ public class GUI {
 
         setupActionListeners();
 
-        //TEST//
-        menu = new JMenu("Help");
-        JMenuItem menuItem = new JMenuItem("About");
-        menuItem.addActionListener((ActionEvent e)->{
-            JOptionPane.showMessageDialog(frame,"Sudoku Game, version 2.2","INFO",JOptionPane.INFORMATION_MESSAGE);
+        //setup menu
+        JMenuBar menuBar = new JMenuBar();
+        JMenu viewMenu = new JMenu("View");
+        JMenu helpMenu = new JMenu("Help");
+
+        JMenuItem aboutItem = new JMenuItem("About");
+        aboutItem.addActionListener((ActionEvent e)->{
+            JOptionPane.showMessageDialog(frame,"Sudoku Game" + "\n" + "Version 2.2","INFO",JOptionPane.INFORMATION_MESSAGE);
         });
-        menu.add(menuItem);
-        menuBar = new JMenuBar();
-        menuBar.add(menu);
+
+        JMenuItem statsItem = new JMenuItem("Show Stats");
+        statsItem.addActionListener((ActionEvent e)->{
+            StringBuilder stats = new StringBuilder();
+            stats.append("Duidoku").append('\n');
+            stats.append("  wins:  ").append(player.getDuidokuWins()).append('\n');
+            stats.append("  loses: ").append(player.getDuidokuLoses());
+            JOptionPane.showMessageDialog(frame,stats,player.getNickname()+ "'s stats",JOptionPane.INFORMATION_MESSAGE);
+        });
+
+        viewMenu.add(statsItem);
+//        statsItem.setEnabled(false);
+        helpMenu.add(aboutItem);
+
+        menuBar.add(viewMenu);
+        menuBar.add(helpMenu);
         frame.setJMenuBar(menuBar);
         ////////
 
