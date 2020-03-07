@@ -1,6 +1,7 @@
 package gui;
 
 import auxiliary.GameType;
+import com.sun.tools.javac.Main;
 import player.*;
 import puzzle.*;
 import sudokuBundle.*;
@@ -133,8 +134,24 @@ public class GUI {
 
         //setup menu
         JMenuBar menuBar = new JMenuBar();
+        JMenu fileMenu = new JMenu("File");
         JMenu viewMenu = new JMenu("View");
         JMenu helpMenu = new JMenu("Help");
+
+        JMenuItem saveItem = new JMenuItem("Save");
+        saveItem.addActionListener((ActionEvent e) -> {
+            if(player != null) {
+                player.getProgress().updateData(game.getPuzzleIndex(), game.getPuzzle().getTable());
+                for (int[][] x : player.getProgress().getData().values()) {
+                    for(int i = 0; i < game.getPuzzle().getLength(); i++) {
+                        for (int j = 0; j < game.getPuzzle().getLength(); j++) {
+                            System.out.print(x[i][j] + " ");
+                        }
+                        System.out.println();
+                    }
+                }
+            }
+        });
 
         JMenuItem aboutItem = new JMenuItem("About");
         aboutItem.addActionListener((ActionEvent e)->{
@@ -164,10 +181,12 @@ public class GUI {
             JOptionPane.showMessageDialog(frame,stats,player.getNickname()+ "'s stats",JOptionPane.INFORMATION_MESSAGE);
         });
 
+        fileMenu.add(saveItem);
         viewMenu.add(statsItem);
 //        statsItem.setEnabled(false);
         helpMenu.add(aboutItem);
 
+        menuBar.add(fileMenu);
         menuBar.add(viewMenu);
         menuBar.add(helpMenu);
         frame.setJMenuBar(menuBar);

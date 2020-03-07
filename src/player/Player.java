@@ -13,6 +13,7 @@ public class Player implements Serializable {
     private int duidokuWins;
     private int duidokuLoses;
     private String filepath;
+    private PlayerProgress progress;
 
     private final int numOfSudokuPuzzles = 10;
     private final int numOfKillerSudokuPuzzles = 10;
@@ -26,6 +27,7 @@ public class Player implements Serializable {
         this.filepath = filepath;
         this.duidokuWins = 0;
         this.duidokuLoses = 0;
+        this.progress = new PlayerProgress();
         readFromFile();
     }
 
@@ -81,6 +83,7 @@ public class Player implements Serializable {
     public boolean isExistsInFile() { return existInFile; }
     public int getNumOfSudokuPuzzles() { return numOfSudokuPuzzles; }
     public int getNumOfKillerSudokuPuzzles() { return numOfKillerSudokuPuzzles; }
+    public PlayerProgress getProgress() { return progress; }
 
     public void increaseDuidokuWins() { duidokuWins++; }
     public void increaseDuidokuLoses() { duidokuLoses++; }

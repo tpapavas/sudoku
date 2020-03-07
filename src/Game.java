@@ -14,6 +14,8 @@ import java.nio.file.Paths;
  * @author Theodoros Papavasileiou
  */
 public class Game {
+    public static final double version = 2.2;
+
     public static void main(String[] args) throws Throwable {
         //setDataFile();
 
