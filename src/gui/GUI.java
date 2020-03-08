@@ -1,5 +1,6 @@
 package gui;
 
+import auxiliary.Duplet;
 import auxiliary.GameType;
 import com.sun.tools.javac.Main;
 import player.*;
@@ -40,6 +41,7 @@ public class GUI {
 
     private Sudoku game;
     private Player player;
+    private GameType gameType;
 
     private Locale locale;
     private ResourceBundle messages;
@@ -141,15 +143,9 @@ public class GUI {
         JMenuItem saveItem = new JMenuItem("Save");
         saveItem.addActionListener((ActionEvent e) -> {
             if(player != null) {
-                player.getProgress().updateData(game.getPuzzleIndex(), game.getPuzzle().getTable());
-                for (int[][] x : player.getProgress().getData().values()) {
-                    for(int i = 0; i < game.getPuzzle().getLength(); i++) {
-                        for (int j = 0; j < game.getPuzzle().getLength(); j++) {
-                            System.out.print(x[i][j] + " ");
-                        }
-                        System.out.println();
-                    }
-                }
+                Duplet duplet = new Duplet(game.getPuzzleIndex(),gameType);
+                player.getProgress().updateData(duplet, game.getPuzzle());
+                System.out.println("Saved");
             }
         });
 
@@ -423,11 +419,11 @@ public class GUI {
                         panelGameContainer.remove(0);
 
                         //write to players file
-                        if (game.getPuzzle().isFull()) {
+                        //if (game.getPuzzle().isFull()) {
                             game.updatePlayersFile();
                             System.out.println("Loses: " + player.getDuidokuLoses());
                             System.out.println("Wins: " + player.getDuidokuWins());
-                        }
+                        //}
 
                         //free memory
                         game = null;
@@ -466,6 +462,7 @@ public class GUI {
         //---BUTTON ENTER
         buttonEnter.addActionListener((ActionEvent e) -> {
             player = new Player(fieldUsername.getText(),"players.dat");
+
             toggleChildButtons(panelButtons,true);
             panelUserInfo.setVisible(true);
             panelGameContainer.removeAll();
@@ -559,14 +556,12 @@ public class GUI {
             cells[k].setCoordJ(currentOriginJ + coordinates[1]);
 
             //set cell appearance and add to square
-            if(game.getPuzzle().getState()[cells[k].getCoordI()][cells[k].getCoordJ()] == State.ACCESSIBLE) {
+            if(game.getPuzzle().getState()[cells[k].getCoordI()][cells[k].getCoordJ()] == State.ACCESSIBLE)
                 cells[k].getButton().setBackground(COLOR_DEFAULT);
-                cells[k].getButton().setText(" ");
-            }
-            else {
+            else
                 cells[k].getButton().setBackground(new Color(185, 185, 185));
-                cells[k].getButton().setText(Character.toString(game.getRepresentation().getFormat()[game.getPuzzle().getTable()[cells[k].getCoordI()][cells[k].getCoordJ()]]));
-            }
+            cells[k].getButton().setText(Character.toString(game.getRepresentation().getFormat()[game.getPuzzle().getTable()[cells[k].getCoordI()][cells[k].getCoordJ()]]));
+
             currentSquare.add(cells[k].getButton());
         }
 
@@ -583,7 +578,6 @@ public class GUI {
             for(int k = 0; k < game.getPuzzle().getNumOfCells(); k++) {
                 cells[k].getButton().setBackground(regionsColorsMap[((KillerSudoku) game).getCellRegion(cells[k].getCoordI(), cells[k].getCoordJ())]);
                 cells[k].setDefaultColor(regionsColorsMap[((KillerSudoku) game).getCellRegion(cells[k].getCoordI(), cells[k].getCoordJ())]);
-                cells[k].getButton().setText(" ");
             }
         }
 
@@ -598,14 +592,17 @@ public class GUI {
         switch (gameType) {
             case CLASSIC_SUDOKU:
                 game = new ClassicSudoku(player);
+                this.gameType = GameType.CLASSIC_SUDOKU;
                 break;
 
             case KILLER_SUDOKU:
                 game = new KillerSudoku(player);
+                this.gameType = GameType.KILLER_SUDOKU;
                 break;
 
             default:
                 game = new Duidoku(player);
+                this.gameType = GameType.DUIDOKU;
         }
     }
 

@@ -1,6 +1,8 @@
 package auxiliary;
 
-public enum GameType {
+import java.io.Serializable;
+
+public enum GameType implements Serializable {
     CLASSIC_SUDOKU(0),
     KILLER_SUDOKU(1),
     DUIDOKU(2);

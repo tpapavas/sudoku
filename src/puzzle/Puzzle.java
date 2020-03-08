@@ -1,6 +1,8 @@
 package puzzle;
 
-public class Puzzle {
+import java.io.Serializable;
+
+public class Puzzle implements Serializable {
     private State[][] state;
     private int[][] table;
     private int filledCells;

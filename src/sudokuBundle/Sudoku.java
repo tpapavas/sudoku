@@ -213,4 +213,6 @@ public abstract class Sudoku {
     public DisplayType getType() { return type; }
     public Representation getRepresentation() { return representation; }
     public int getPuzzleIndex() { return puzzleIndex; }
+
+    public void setPuzzle(Puzzle puzzle) { this.puzzle = puzzle; }
 }

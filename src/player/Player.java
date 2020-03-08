@@ -72,6 +72,7 @@ public class Player implements Serializable {
         this.hasPlayedKillerSudoku = p.hasPlayedKillerSudoku;
         this.duidokuWins = p.duidokuWins;
         this.duidokuLoses = p.duidokuLoses;
+        this.progress = p.progress;
     }
 
     public String getNickname() { return nickname; }

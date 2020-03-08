@@ -1,5 +1,7 @@
 package sudokuBundle;
 
+import auxiliary.Duplet;
+import auxiliary.GameType;
 import player.Player;
 import puzzle.State;
 
@@ -35,17 +37,16 @@ public class ClassicSudoku extends Sudoku {
         try {
             reader = new BufferedReader(new FileReader(filepath));
             String line;
-            while((line = reader.readLine()) != null) {
+            while ((line = reader.readLine()) != null) {
                 Scanner tokenizer = new Scanner(line);
-                if(tokenizer.hasNextInt()) {
+                if (tokenizer.hasNextInt()) {
                     int indexes = tokenizer.nextInt();
-                    if(tokenizer.hasNextInt()) {
+                    if (tokenizer.hasNextInt()) {
                         int value = tokenizer.nextInt();
                         int row = indexes / 10;  //First digit is row index
                         int column = indexes % 10;  //Second digit is column index
-
-                        puzzle.setValue(value,row,column);
-                        puzzle.setState(State.NEGATED,row,column);  //Player cannot modify this cell
+                        puzzle.setValue(value, row, column);
+                        puzzle.setState(State.NEGATED, row, column);  //Player cannot modify this cell
                         puzzle.increaseFilledCells();
                     }
                 }
@@ -54,13 +55,19 @@ public class ClassicSudoku extends Sudoku {
             //e.printStackTrace();
             System.out.println("Error within ClassicSudoku's readFromFile()");
         } finally {
-            if(reader != null) {
+            if (reader != null) {
                 try {
                     reader.close();
                 } catch (IOException e) {
                     System.out.println("Error closing file in ClassicSudoku's readFromFile()");
                 }
             }
+        }
+
+        Duplet duplet = new Duplet(puzzleIndex, GameType.CLASSIC_SUDOKU);
+        if(player.getProgress().getData().containsKey(duplet)) {
+            System.out.println("YEP");
+            setPuzzle(player.getProgress().getData().get(duplet));
         }
     }
 

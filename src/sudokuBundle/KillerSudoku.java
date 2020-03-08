@@ -1,5 +1,7 @@
 package sudokuBundle;
 
+import auxiliary.Duplet;
+import auxiliary.GameType;
 import player.Player;
 
 import java.io.BufferedReader;
@@ -36,11 +38,11 @@ public class KillerSudoku extends Sudoku {
             reader = new BufferedReader(new FileReader(filepath));
             String line;
             int i = 0;
-            while((line = reader.readLine()) != null) {
+            while ((line = reader.readLine()) != null) {
                 Scanner tokenizer = new Scanner(line);
-                if(tokenizer.hasNextInt()) {
+                if (tokenizer.hasNextInt()) {
                     regionSums.add(tokenizer.nextInt());
-                    while(tokenizer.hasNextInt()) {
+                    while (tokenizer.hasNextInt()) {
                         int indexes = tokenizer.nextInt();
                         int row = indexes / 10;
                         int column = indexes % 10;
@@ -52,13 +54,19 @@ public class KillerSudoku extends Sudoku {
         } catch (IOException e) {
             System.out.println("Error within KillerSudoku's readFromFile()");
         } finally {
-            if(reader != null) {
+            if (reader != null) {
                 try {
                     reader.close();
                 } catch (IOException e) {
                     System.out.println("Error closing file in KillerSudoku's readFromFile()");
                 }
             }
+        }
+
+        Duplet duplet = new Duplet(puzzleIndex, GameType.KILLER_SUDOKU);
+        if(player.getProgress().getData().containsKey(duplet)) {
+            System.out.println("YEP");
+            setPuzzle(player.getProgress().getData().get(duplet));
         }
     }
 
@@ -103,9 +111,10 @@ public class KillerSudoku extends Sudoku {
 
     protected int findPuzzle() {
         for(int i = 0; i < player.getNumOfKillerSudokuPuzzles(); i++) {
-            if(player.getHasPlayedKillerSudoku()[i])
+            if(!player.getHasPlayedKillerSudoku()[i])
                 return i+1;
         }
+        System.out.println("Something not working well");
         Random r = new Random();
         return (r.nextInt(player.getNumOfKillerSudokuPuzzles()) + 1);
     }
