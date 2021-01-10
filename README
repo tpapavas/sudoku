@@ -1,2 +1,7 @@
 This is a Sudoku Game builded by Stergios Stamatiou and Theodoros Papavasiliou for an "Object-Oriented Programming" class.
 It is written in Java. 
+
+It offers three different modes:
+-Classic Sudoku
+-Killer Sudoku
+-Wordoku
